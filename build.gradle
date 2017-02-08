@@ -1,0 +1,57 @@
+buildscript {
+	ext {
+		springBootVersion = '1.4.3.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+jar {
+	baseName = 'thoughtbubble'
+	version = '0.0.1-SNAPSHOT'
+}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	//DB and ORM
+	compile 'org.springframework:spring-orm:4.2.5.RELEASE'
+	compile group: 'org.hibernate', name: 'hibernate-core', version: '5.0.9.Final'
+	compile group: 'org.hibernate', name: 'hibernate-entitymanager', version: '5.0.9.Final'
+	compile group: 'org.hibernate', name: 'hibernate-validator', version: '5.3.4.Final'
+
+	compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '1.10.3.RELEASE'
+    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1212'
+	compile 'org.apache.tomcat:tomcat-dbcp:8.0.32'
+
+	//Spring Security
+	compile group: 'org.springframework.security', name: 'spring-security-messaging', version: '4.0.2.RELEASE'
+	compile('org.springframework.boot:spring-boot-starter-security')
+
+	//Web & config
+	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('org.springframework.boot:spring-boot-starter-websocket')
+
+    //this dependency removes bug found here https://github.com/spring-projects/spring-hateoas/issues/80
+	compile group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '1.2.0.RELEASE'
+	compile group: 'org.springframework.hateoas', name: 'spring-hateoas', version: '0.23.0.RELEASE'
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+
+    //websocket
+    compile group: 'org.springframework', name: 'spring-websocket', version: '4.3.5.RELEASE'
+    compile group: 'org.webjars', name: 'sockjs-client', version: '1.1.1'
+    compile group: 'org.webjars', name: 'stomp-websocket', version: '2.3.3'
+}
