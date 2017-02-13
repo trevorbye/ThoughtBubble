@@ -20,6 +20,6 @@ public interface ThoughtEntityDao extends CrudRepository<ThoughtEntity, Long> {
     List<ThoughtEntity> findFirst5ByOrderByPostDateDesc();
 
     @Transactional
-    Long deleteByUsernameAndBody(String username, String body);
+    Long deleteByPostId(Long postId);
 
 }

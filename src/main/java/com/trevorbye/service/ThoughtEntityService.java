@@ -9,5 +9,5 @@ public interface ThoughtEntityService {
     ThoughtEntity findPostById(Long postId);
     List<ThoughtEntity> findByUser(String username);
     List<ThoughtEntity> getDescendingThoughtArray();
-    Long deleteEntity(String username, String body);
+    Long deleteEntity(Long postId);
 }

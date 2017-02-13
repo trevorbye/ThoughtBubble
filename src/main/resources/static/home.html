@@ -12,11 +12,17 @@
                 <li>
                     {{x.username}}
                 </li>
+                <li ng-hide="!authenticated">
+                    <button ng-click="favoritePost(x.postId, x)">Favorite</button>
+                </li>
                 <li>
                     {{x.favoriteCount}}
                 </li>
                 <li>
                     {{x.postDate}}
+                </li>
+                <li ng-show="x.username == authUser">
+                    <button ng-click="deletePost(x.postId, x)">Delete thought.</button>
                 </li>
             </ul>
         </div>
@@ -25,7 +31,7 @@
 
 <div class="input-div">
     <textarea type="text" placeholder="What's your thought?" ng-model="payload.body"></textarea>
-    <div class="length-count" ng-show="showCount">{{bodyLengthCount}}</div>
+
     <br>
     <button ng-click="sendMessage();">Share Thought</button>
     <br>

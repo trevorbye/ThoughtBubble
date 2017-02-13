@@ -99,16 +99,22 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
 
     var socketConnection = false;
     $scope.showCount = false;
-    $scope.bodyLengthCount = undefined;
+    $scope.authUser = $rootScope.username;
 
-    $scope.payload = {};
-    $scope.payload.body = undefined;
-    $scope.payload.username = $rootScope.username;
+
+    $scope.payload = {
+        postId: undefined,
+        postDate: undefined,
+        body: undefined,
+        username: $rootScope.username
+    };
+
+    var errorObject = {
+        message: undefined
+    };
 
     $scope.displayArray = [];
     $scope.errorResponses = [];
-
-
 
     if (!socketConnection) {
         $http.get('getLatestPost', halHeader).then(function(response) {
@@ -120,15 +126,34 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
         STOMPService.resetConnection();
     }
 
-    //TODO persist thought with POST request to /persistThought first, then send over STOMP if it's valid upon return. This will allow using principal without STOMP errors
     $scope.sendMessage = function () {
         $http.post('persistThought', $scope.payload, halHeader).then(function (response) {
-            //todo returned object doesn't map, must use setters to change scope object
+            $scope.errorResponses = [];
+            $scope.payload.postId = response.data.postId;
+            $scope.payload.postDate = response.data.postDate;
             STOMPService.send($scope.payload);
+            $scope.payload.body = undefined;
         }, function (response) {
             if (response.status == 400) {
                 $scope.errorResponses = response.data.fieldErrors;
             }
+        });
+    };
+
+    $scope.favoritePost = function (postId, currentScope) {
+        $http.get('incrementFavoriteCount?postId=' + postId).then(function (response) {
+            currentScope.favoriteCount++;
+        }, function (response) {
+                errorObject.message = response.data.error;
+                $scope.errorResponses.unshift(errorObject);
+        });
+    };
+
+    $scope.deletePost = function (postId, currentObject) {
+        $http.get('deleteThought?postId=' + postId).then(function (response) {
+            $scope.displayArray.splice($scope.displayArray.indexOf(currentObject),1);
+        }, function (response) {
+
         });
     };
 
@@ -206,26 +231,31 @@ thoughtBubbleApp.controller('register', function($rootScope, $http, $location, $
         $scope.passConfirm = {};
     };
 
+    var headers = {authorization : "Basic "
+    + btoa($scope.userProfile.username + ":" + $scope.userProfile.password)
+    };
 
     $scope.registerUser = function() {
         if ($scope.userProfile.password == $scope.passConfirm.password) {
             $http.post('register-user', $scope.userProfile, halHeader).then(function (response) {
                 $rootScope.authenticated = true;
+                $rootScope.username = $scope.userProfile.username;
+                $rootScope.authHeaders = headers;
                 $location.path("/");
             }, function (response) {
                 if (response.status == 409) {
                     errorObject.message = response.data.error;
                     $scope.errorMessageArray.push(errorObject);
-                    clearInputs;
+                    clearInputs();
                 } else if (response.status == 400) {
                     $scope.errorMessageArray = response.data.fieldErrors;
-                    clearInputs;
+                    clearInputs();
                 }
             });
         } else {
             errorObject.message = "Passwords do not match.";
             $scope.errorMessageArray.push(errorObject);
-            clearInputs;
+            clearInputs();
         }
     }
 });

@@ -34,8 +34,8 @@ public class ThoughtEntityServiceImpl implements ThoughtEntityService {
     }
 
     @Override
-    public Long deleteEntity(String username, String body) {
-        return entityDao.deleteByUsernameAndBody(username, body);
+    public Long deleteEntity(Long postId) {
+        return entityDao.deleteByPostId(postId);
     }
 
 

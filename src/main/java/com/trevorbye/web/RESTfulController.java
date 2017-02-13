@@ -130,7 +130,7 @@ public class RESTfulController {
         //HATEOAS rel: delete
         ThoughtEntity deleteEntity = new ThoughtEntity(thoughtEntity);
         deleteEntity.removeLinks();
-        deleteEntity.add(linkTo(methodOn(RESTfulController.class).deleteThought(deleteEntity, principal)).withSelfRel());
+        deleteEntity.add(linkTo(methodOn(RESTfulController.class).deleteThought(deleteEntity.getPostId(), principal)).withSelfRel());
 
 
         //HATEOAS _embedded
@@ -140,10 +140,11 @@ public class RESTfulController {
         return new ResponseEntity<>(thoughtEntity, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/deleteThought", method = RequestMethod.POST)
-    public ResponseEntity<?> deleteThought(@Valid @RequestBody ThoughtEntity thoughtEntity, Principal principal) {
+    @RequestMapping(value = "/deleteThought", produces = {MediaType.APPLICATION_JSON_VALUE, "application/hal+json"})
+    public ResponseEntity<?> deleteThought(@RequestParam(value = "postId") Long postId, Principal principal) {
 
-        Link selfRel = linkTo(methodOn(RESTfulController.class).deleteThought(thoughtEntity, principal)).withSelfRel();
+        Link selfRel = linkTo(methodOn(RESTfulController.class).deleteThought(postId, principal)).withSelfRel();
+        ThoughtEntity thoughtEntity = thoughtEntityService.findPostById(postId);
 
         //reject if deleter is not currently logged in user
         if(!thoughtEntity.getUsername().equals(principal.getName())) {
@@ -152,12 +153,13 @@ public class RESTfulController {
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
 
-        thoughtEntityService.deleteEntity(thoughtEntity.getUsername(), thoughtEntity.getBody());
+        thoughtEntityService.deleteEntity(postId);
         //HATEOAS self rel
         thoughtEntity.add(selfRel);
 
         //HATEOAS rel: create
         ThoughtEntity createEntity = new ThoughtEntity(thoughtEntity);
+        createEntity.setFavoriteCount(0);
         createEntity.removeLinks();
         createEntity.add(linkTo(methodOn(RESTfulController.class).persistThought(createEntity,principal)).withSelfRel());
 
@@ -189,6 +191,9 @@ public class RESTfulController {
 
         //retrieve thought, increment, update db record
         ThoughtEntity thoughtEntity = thoughtEntityService.findPostById(postId);
+
+
+        //TODO implement logic to handle post-favorites for posts that have just been deleted and would return null
         thoughtEntity.setFavoriteCount(thoughtEntity.getFavoriteCount() + 1);
         thoughtEntityService.save(thoughtEntity);
 
