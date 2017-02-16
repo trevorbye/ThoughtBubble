@@ -1,5 +1,7 @@
-<button ng-click="goToLogin()">Login</button>
-<button ng-click="goToRegister()">Register</button>
+<button ng-click="goToLogin()" ng-hide="authenticated">Login</button>
+<button ng-click="goToRegister()" ng-hide="authenticated">Register</button>
+<button ng-click="goToProfile()" ng-hide="!authenticated">Profile</button>
+
 
 <ul>
     <li ng-repeat="x in displayArray">

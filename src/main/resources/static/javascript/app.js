@@ -20,6 +20,10 @@ thoughtBubbleApp.config(function ($routeProvider, $httpProvider) {
         templateUrl : 'register.html',
         controller : 'register',
         controllerAs : 'controller'
+    }).when('/user-profile/:username', {
+        templateUrl : 'profile.html',
+        controller : 'profile',
+        controllerAs : 'controller'
     });
 });
 
@@ -95,7 +99,26 @@ thoughtBubbleApp.service('STOMPService', ['$q', '$timeout', '$rootScope', functi
     return service;
 }]);
 
-thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope', 'STOMPService', function ($http, $location, $scope, $rootScope, STOMPService) {
+thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope', 'STOMPService', '$timeout', '$route', function ($http, $location, $scope, $rootScope, STOMPService, $timeout, $route) {
+    $http.get('user', {headers : {}}).then(function(response) {
+
+        if (response.data.principal.name) {
+            //TODO use principal response object to build Basic auth headers
+
+            $rootScope.authenticated = true;
+            $rootScope.username = response.data.principal.name;
+            console.log($rootScope.username);
+            //save auth headers in rootScope to use in websocket connection
+            $rootScope.authHeaders = {};
+            authorities = response.data.authorities;
+
+        } else {
+            $rootScope.authenticated = false;
+        }
+
+    }, function() {
+        $rootScope.authenticated = false;
+    });
 
     var socketConnection = false;
     $scope.showCount = false;
@@ -127,6 +150,9 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
     }
 
     $scope.sendMessage = function () {
+        $scope.payload.username = $rootScope.username;
+        console.log($scope.payload);
+
         $http.post('persistThought', $scope.payload, halHeader).then(function (response) {
             $scope.errorResponses = [];
             $scope.payload.postId = response.data.postId;
@@ -136,6 +162,10 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
         }, function (response) {
             if (response.status == 400) {
                 $scope.errorResponses = response.data.fieldErrors;
+
+                $timeout(function () {
+                    $scope.errorResponses = [];
+                }, 3000);
             }
         });
     };
@@ -144,8 +174,12 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
         $http.get('incrementFavoriteCount?postId=' + postId).then(function (response) {
             currentScope.favoriteCount++;
         }, function (response) {
-                errorObject.message = response.data.error;
-                $scope.errorResponses.unshift(errorObject);
+            errorObject.message = response.data.error;
+            $scope.errorResponses.unshift(errorObject);
+
+            $timeout(function () {
+                $scope.errorResponses = [];
+            }, 3000);
         });
     };
 
@@ -174,6 +208,15 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
     $scope.goToRegister = function () {
         $location.path("/register");
     };
+
+    $scope.goToProfile = function () {
+        $location.path("/user-profile/" + $rootScope.username);
+    };
+
+    $scope.goToLogout = function () {
+
+    };
+
 }]);
 
 thoughtBubbleApp.controller('login', function($rootScope, $http, $location, $scope) {
@@ -257,6 +300,12 @@ thoughtBubbleApp.controller('register', function($rootScope, $http, $location, $
             $scope.errorMessageArray.push(errorObject);
             clearInputs();
         }
+    }
+});
+
+thoughtBubbleApp.controller('profile', function ($rootScope, $http, $location, $scope) {
+    if (!$rootScope.authenticated) {
+        $location.path('/')
     }
 });
 

@@ -48,6 +48,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http    .httpBasic()
                 .and()
+                    .rememberMe()
+                    .key("login-remember-me")
+                    .alwaysRemember(true)
+                    .rememberMeCookieName("thought-bubble-login")
+                    .tokenValiditySeconds(864000)
+                .and()
                     .csrf().disable()
                     .authorizeRequests()
                     .antMatchers("/", "/index.html", "/home.html", "/getLatestPost",

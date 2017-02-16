@@ -78,7 +78,6 @@ public class RESTfulController {
         profileEntity.setEnabled(true);
         UserProfileEntity newUser = userProfileService.save(profileEntity);
         //auto login
-        //todo test auto login
         request.login(newUser.getUsername(), newUser.getPassword());
         //wrap user object in HAL formatted wrapper
         UserProfileHalWrapper userProfileHalWrapper = new UserProfileHalWrapper(profileEntity);
@@ -176,7 +175,6 @@ public class RESTfulController {
         if (postCreatedBy.equals(principal.getName())) {
             ErrorJsonResponse response = new ErrorJsonResponse("User cannot favorite own thought.");
             response.add(selfRel);
-
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
 
@@ -185,15 +183,17 @@ public class RESTfulController {
         if (combination != null) {
             ErrorJsonResponse response = new ErrorJsonResponse("User already favorited this post.");
             response.add(selfRel);
-
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        //retrieve thought, increment, update db record
+        //check if user deleted thought while still in web socket queue
         ThoughtEntity thoughtEntity = thoughtEntityService.findPostById(postId);
+        if (thoughtEntity == null) {
+            ErrorJsonResponse response = new ErrorJsonResponse("User has deleted this thought.");
+            response.add(selfRel);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
 
-
-        //TODO implement logic to handle post-favorites for posts that have just been deleted and would return null
         thoughtEntity.setFavoriteCount(thoughtEntity.getFavoriteCount() + 1);
         thoughtEntityService.save(thoughtEntity);
 
