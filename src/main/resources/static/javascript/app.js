@@ -103,13 +103,16 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
     $http.get('user', {headers : {}}).then(function(response) {
 
         if (response.data.principal.name) {
-            //TODO use principal response object to build Basic auth headers
+
+            //use principal response object to build Basic auth headers
+            $rootScope.authHeaders = {authorization : "Basic "
+            + btoa(response.data.principal.name + ":" + response.data.principal.password)
+            };
+
+            console.log($rootScope.authHeaders);
 
             $rootScope.authenticated = true;
             $rootScope.username = response.data.principal.name;
-            console.log($rootScope.username);
-            //save auth headers in rootScope to use in websocket connection
-            $rootScope.authHeaders = {};
             authorities = response.data.authorities;
 
         } else {
@@ -307,5 +310,12 @@ thoughtBubbleApp.controller('profile', function ($rootScope, $http, $location, $
     if (!$rootScope.authenticated) {
         $location.path('/')
     }
+
+    $http.get('getProfileData?username=' + $rootScope.username, halHeader).then(function (response) {
+
+    }, function (response) {
+
+    });
+
 });
 

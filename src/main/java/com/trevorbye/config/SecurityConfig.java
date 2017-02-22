@@ -52,6 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .key("login-remember-me")
                     .alwaysRemember(true)
                     .rememberMeCookieName("thought-bubble-login")
+                    //ten day token validity
                     .tokenValiditySeconds(864000)
                 .and()
                     .csrf().disable()

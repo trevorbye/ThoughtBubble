@@ -209,12 +209,19 @@ public class RESTfulController {
     //endpoint for fetching data to display on user profile
     @RequestMapping("/getProfileData")
     public ResponseEntity<?> getProfileData(@RequestParam(value = "username") String username, Principal principal) {
+        Link selfRel = linkTo(methodOn(RESTfulController.class).getProfileData(username, principal)).withSelfRel();
 
         if (!username.equals(principal.getName())) {
-            return new ResponseEntity<>(new ErrorJsonResponse("Credentials conflict with resource."), HttpStatus.UNAUTHORIZED);
+            ErrorJsonResponse response = new ErrorJsonResponse("Credentials conflict with resource.");
+            response.add(selfRel);
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
 
-        return null;
+        List<ThoughtEntity> thoughtEntities = thoughtEntityService.findProfileThoughts(username);
+        ThoughtEntityListWrapper listWrapper = new ThoughtEntityListWrapper(thoughtEntities);
+        listWrapper.add(selfRel);
+
+        return new ResponseEntity<>(listWrapper, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/getLatestPost", produces = {MediaType.APPLICATION_JSON_VALUE, "application/hal+json"})

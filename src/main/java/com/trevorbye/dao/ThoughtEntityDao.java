@@ -22,4 +22,6 @@ public interface ThoughtEntityDao extends CrudRepository<ThoughtEntity, Long> {
     @Transactional
     Long deleteByPostId(Long postId);
 
+    List<ThoughtEntity> findByUsernameOrderByFavoriteCountDesc(String username);
+
 }

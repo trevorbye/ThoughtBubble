@@ -38,5 +38,10 @@ public class ThoughtEntityServiceImpl implements ThoughtEntityService {
         return entityDao.deleteByPostId(postId);
     }
 
+    @Override
+    public List<ThoughtEntity> findProfileThoughts(String username) {
+        return entityDao.findByUsernameOrderByFavoriteCountDesc(username);
+    }
+
 
 }
