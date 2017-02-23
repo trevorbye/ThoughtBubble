@@ -11,21 +11,31 @@ thoughtBubbleApp.config(function ($routeProvider, $httpProvider) {
     $routeProvider.when('/', {
         templateUrl : 'home.html',
         controller : 'home',
-        controllerAs : 'controller'
+        controllerAs : 'controller',
+        title : 'Thought Bubble | Home'
     }).when('/login', {
         templateUrl : 'login.html',
         controller : 'login',
-        controllerAs : 'controller'
+        controllerAs : 'controller',
+        title : 'Thought Bubble | Login'
     }).when('/register', {
         templateUrl : 'register.html',
         controller : 'register',
-        controllerAs : 'controller'
+        controllerAs : 'controller',
+        title : 'Thought Bubble | Register'
     }).when('/user-profile/:username', {
         templateUrl : 'profile.html',
         controller : 'profile',
-        controllerAs : 'controller'
+        controllerAs : 'controller',
+        title : 'Thought Bubble | Profile'
     });
 });
+
+thoughtBubbleApp.run(['$rootScope', '$route', function ($rootScope, $route) {
+    $rootScope.$on('$routeChangeSuccess', function () {
+        $rootScope.pageTitle = $route.current.title;
+    });
+}]);
 
 thoughtBubbleApp.service('STOMPService', ['$q', '$timeout', '$rootScope', function ($q, $timeout, $rootScope) {
 
