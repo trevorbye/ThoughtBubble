@@ -40,7 +40,7 @@ public class ThoughtEntityServiceImpl implements ThoughtEntityService {
 
     @Override
     public List<ThoughtEntity> findProfileThoughts(String username) {
-        return entityDao.findByUsernameOrderByFavoriteCountDesc(username);
+        return entityDao.findFirst5ByUsernameOrderByFavoriteCountDesc(username);
     }
 
 

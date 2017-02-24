@@ -317,12 +317,14 @@ thoughtBubbleApp.controller('register', function($rootScope, $http, $location, $
 });
 
 thoughtBubbleApp.controller('profile', function ($rootScope, $http, $location, $scope) {
+    $scope.profileThoughtList = [];
+
     if (!$rootScope.authenticated) {
         $location.path('/')
     }
 
     $http.get('getProfileData?username=' + $rootScope.username, halHeader).then(function (response) {
-
+        $scope.profileThoughtList = response.data.entityList;
     }, function (response) {
 
     });

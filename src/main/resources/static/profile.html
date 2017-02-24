@@ -1,0 +1,19 @@
+<div>
+    {{username}}
+</div>
+
+<ul>
+    <li ng-repeat="x in profileThoughtList">
+        <div>
+            {{x.body}}
+        </div>
+        <ul>
+            <li>
+                {{x.favoriteCount}}
+            </li>
+            <li>
+                {{x.postDate}}
+            </li>
+        </ul>
+    </li>
+</ul>
