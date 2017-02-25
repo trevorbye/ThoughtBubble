@@ -15,7 +15,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletException;
@@ -42,8 +41,10 @@ public class RESTfulController {
     @Autowired
     private UserProfileService userProfileService;
 
+    /*
     @Autowired
     private TokenBasedRememberMeServices rememberMeServices;
+    */
 
     @RequestMapping(value = "/user", produces = {MediaType.APPLICATION_JSON_VALUE, "application/hal+json"})
     public ResponseEntity<?> user(Principal principal) {
