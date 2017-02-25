@@ -15,10 +15,14 @@ import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.sql.Date;
@@ -40,6 +44,9 @@ public class RESTfulController {
     @Autowired
     private UserProfileService userProfileService;
 
+    @Autowired
+    private TokenBasedRememberMeServices rememberMeServices;
+
     @RequestMapping(value = "/user", produces = {MediaType.APPLICATION_JSON_VALUE, "application/hal+json"})
     public ResponseEntity<?> user(Principal principal) {
         Link selfRel = linkTo(methodOn(RESTfulController.class).user(principal)).withSelfRel();
@@ -57,28 +64,32 @@ public class RESTfulController {
     }
 
     @RequestMapping(value = "/register-user", produces = {MediaType.APPLICATION_JSON_VALUE, "application/hal+json"})
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserProfileEntity profileEntity, HttpServletRequest request) throws ServletException {
-        Link selfRel = linkTo(methodOn(RESTfulController.class).registerUser(profileEntity, request)).withSelfRel();
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserProfileEntity profileEntity, HttpServletRequest request, HttpServletResponse response) throws ServletException {
+        Link selfRel = linkTo(methodOn(RESTfulController.class).registerUser(profileEntity, request, response)).withSelfRel();
 
         UserProfileEntity existingEmail = userProfileService.findByEmail(profileEntity.getEmail());
         if (existingEmail != null) {
-            ErrorJsonResponse response = new ErrorJsonResponse("Account already exists for this email.");
-            response.add(selfRel);
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+            ErrorJsonResponse errorJsonResponse = new ErrorJsonResponse("Account already exists for this email.");
+            errorJsonResponse.add(selfRel);
+            return new ResponseEntity<>(errorJsonResponse, HttpStatus.CONFLICT);
         }
 
         UserProfileEntity existingUser = userProfileService.findByUsername(profileEntity.getUsername());
         if (existingUser != null) {
-            ErrorJsonResponse response = new ErrorJsonResponse("Username is taken.");
-            response.add(selfRel);
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+            ErrorJsonResponse errorJsonResponse = new ErrorJsonResponse("Username is taken.");
+            errorJsonResponse.add(selfRel);
+            return new ResponseEntity<>(errorJsonResponse, HttpStatus.CONFLICT);
         }
 
         //save new profile if all conditions are met
         profileEntity.setEnabled(true);
         UserProfileEntity newUser = userProfileService.save(profileEntity);
+
         //auto login
         request.login(newUser.getUsername(), newUser.getPassword());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        rememberMeServices.onLoginSuccess(request,response,authentication);
+
         //wrap user object in HAL formatted wrapper
         UserProfileHalWrapper userProfileHalWrapper = new UserProfileHalWrapper(profileEntity);
         userProfileHalWrapper.add(selfRel);
