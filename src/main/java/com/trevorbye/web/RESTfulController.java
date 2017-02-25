@@ -15,8 +15,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.web.bind.annotation.*;
 
@@ -87,8 +85,10 @@ public class RESTfulController {
 
         //auto login
         request.login(newUser.getUsername(), newUser.getPassword());
+        /*
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         rememberMeServices.onLoginSuccess(request,response,authentication);
+        */
 
         //wrap user object in HAL formatted wrapper
         UserProfileHalWrapper userProfileHalWrapper = new UserProfileHalWrapper(profileEntity);
