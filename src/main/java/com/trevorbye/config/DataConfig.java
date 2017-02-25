@@ -52,6 +52,7 @@ public class DataConfig {
         BasicDataSource dataSource = new BasicDataSource();
 
         //HEROKU CONFIG
+
         String username = dbUri.getUserInfo().split(":")[0];
         String password = dbUri.getUserInfo().split(":")[1];
         String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + dbUri.getPort() + dbUri.getPath();
@@ -61,13 +62,15 @@ public class DataConfig {
         dataSource.setUsername(username);
         dataSource.setPassword(password);
 
-        /*
-        //LOCAL CONFIG
 
+
+        //LOCAL CONFIG
+        /*
         dataSource.setUrl(environment.getProperty("db.url"));
         dataSource.setUsername(environment.getProperty("db.username"));
         dataSource.setPassword(environment.getProperty("db.password"));
         */
+
 
         return dataSource;
     }
