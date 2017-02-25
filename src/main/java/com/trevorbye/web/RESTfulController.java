@@ -11,6 +11,7 @@ import com.trevorbye.service.FavoriteTrackerService;
 import com.trevorbye.service.ThoughtEntityService;
 import com.trevorbye.service.UserProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,7 +40,8 @@ public class RESTfulController {
     private FavoriteTrackerService favoriteTrackerService;
 
     @Autowired
-    private UserProfileService serviceUserProfile;
+    @Lazy
+    private UserProfileService userProfileService;
 
     /*
     @Autowired
@@ -66,14 +68,14 @@ public class RESTfulController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserProfileEntity profileEntity, HttpServletRequest request, HttpServletResponse response) throws ServletException {
         Link selfRel = linkTo(methodOn(RESTfulController.class).registerUser(profileEntity, request, response)).withSelfRel();
 
-        UserProfileEntity existingEmail = serviceUserProfile.findByEmail(profileEntity.getEmail());
+        UserProfileEntity existingEmail = userProfileService.findByEmail(profileEntity.getEmail());
         if (existingEmail != null) {
             ErrorJsonResponse errorJsonResponse = new ErrorJsonResponse("Account already exists for this email.");
             errorJsonResponse.add(selfRel);
             return new ResponseEntity<>(errorJsonResponse, HttpStatus.CONFLICT);
         }
 
-        UserProfileEntity existingUser = serviceUserProfile.findByUsername(profileEntity.getUsername());
+        UserProfileEntity existingUser = userProfileService.findByUsername(profileEntity.getUsername());
         if (existingUser != null) {
             ErrorJsonResponse errorJsonResponse = new ErrorJsonResponse("Username is taken.");
             errorJsonResponse.add(selfRel);
@@ -82,7 +84,7 @@ public class RESTfulController {
 
         //save new profile if all conditions are met
         profileEntity.setEnabled(true);
-        UserProfileEntity newUser = serviceUserProfile.save(profileEntity);
+        UserProfileEntity newUser = userProfileService.save(profileEntity);
 
         //auto login
         request.login(newUser.getUsername(), newUser.getPassword());

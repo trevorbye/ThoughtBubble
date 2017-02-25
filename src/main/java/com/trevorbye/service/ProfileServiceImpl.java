@@ -3,7 +3,6 @@ package com.trevorbye.service;
 import com.trevorbye.dao.UserProfileDao;
 import com.trevorbye.model.UserProfileEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-@Lazy
 public class ProfileServiceImpl implements UserProfileService {
 
     @Autowired
