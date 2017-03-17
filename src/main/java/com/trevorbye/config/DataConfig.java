@@ -48,8 +48,10 @@ public class DataConfig {
 
     @Bean
     public DataSource dataSource() throws URISyntaxException {
-
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
+
+
+
 
         BasicDataSource dataSource = new BasicDataSource();
 
@@ -70,7 +72,6 @@ public class DataConfig {
         dataSource.setUsername(environment.getProperty("db.username"));
         dataSource.setPassword(environment.getProperty("db.password"));
         */
-        
         return dataSource;
     }
 }
