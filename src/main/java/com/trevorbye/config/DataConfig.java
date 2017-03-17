@@ -50,6 +50,7 @@ public class DataConfig {
     public DataSource dataSource() throws URISyntaxException {
 
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
+        
         BasicDataSource dataSource = new BasicDataSource();
 
         //HEROKU CONFIG
