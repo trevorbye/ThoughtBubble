@@ -1,7 +1,14 @@
-<div>
-    <input type="text" placeholder="Enter username." ng-model="credentials.username">
-    <br>
-    <input type="password" placeholder="Enter password." ng-model="credentials.password">
-    <br>
-    <button ng-click="login();">Login</button>
+<div class="login-container">
+
+        <input type="text" placeholder="Enter username." ng-model="credentials.username">
+        <br>
+        <input type="password" placeholder="Enter password." ng-model="credentials.password">
+
+        <button ng-click="login();" class="send">Login</button>
+
+        <div class="error-response">
+            {{errorResponse.error}}
+        </div>
+
 </div>
+

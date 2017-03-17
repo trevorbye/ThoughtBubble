@@ -1,12 +1,15 @@
-<div>
+<div class="login-container">
     <input type="text" placeholder="Enter a username." ng-model="userProfile.username">
-    <input type="text" placeholder="Enter your email." ng-model="userProfile.email">
-    <input type="password" placeholder="Enter a password." ng-model="userProfile.password">
-    <input type="password" placeholder="Confirm password." ng-model="passConfirm.password">
     <br>
-    <button ng-click="registerUser();">Register</button>
+    <input type="text" placeholder="Enter your email." ng-model="userProfile.email">
+    <br>
+    <input type="password" placeholder="Enter a password." ng-model="userProfile.password">
+    <br>
+    <input type="password" placeholder="Confirm password." ng-model="passConfirm.password">
 
-    <div>
+    <button ng-click="registerUser();" class="send">Register</button>
+
+    <div class="error-response">
         <ul>
             <li ng-repeat="x in errorMessageArray">
                 {{x.message}}

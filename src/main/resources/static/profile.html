@@ -1,19 +1,27 @@
-<div>
-    {{username}}
-</div>
+<div class="main-feed">
 
-<ul>
-    <li ng-repeat="x in profileThoughtList">
-        <div>
-            {{x.body}}
-        </div>
-        <ul>
-            <li>
-                {{x.favoriteCount}}
-            </li>
-            <li>
-                {{x.postDate}}
-            </li>
-        </ul>
-    </li>
-</ul>
+    <div id="big-user-display">
+        <span>{{username}}, check out your top thoughts!</span>
+    </div>
+
+    <ul class="thought-list">
+        <li ng-repeat="x in displayArray" class="square">
+            <div class="display-div">
+
+                <div class="username">
+                    <span id="span-user">User: </span>{{x.username}}
+                </div>
+
+                <div class="body">{{x.body}}</div>
+
+                <div class="trash">
+                    <span class="fa fa-trash" aria-hidden="true" ng-click="deletePost(x.postId, x)"></span>
+                </div>
+
+                <div class="favorites"><span class="fa fa-heart" aria-hidden="true"></span>{{ x.favoriteCount}}</div>
+
+            </div>
+        </li>
+    </ul>
+
+</div>

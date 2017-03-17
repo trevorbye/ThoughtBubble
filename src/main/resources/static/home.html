@@ -1,47 +1,39 @@
-<button ng-click="goToLogin()" ng-hide="authenticated">Login</button>
-<button ng-click="goToRegister()" ng-hide="authenticated">Register</button>
-<button ng-click="goToProfile()" ng-hide="!authenticated">Profile</button>
+<div id="main">
+    <ul class="thought-list">
+        <li ng-repeat="x in displayArray" class="square">
+            <div class="display-div">
 
+                <div class="username">
+                    <span id="span-user">User: </span>{{x.username}}
+                </div>
 
-<ul>
-    <li ng-repeat="x in displayArray">
-        <div class="display-div">
-            <div class="display-body">
-                {{x.body}}
+                <div class="body">{{x.body}}</div>
+
+                <div ng-show="x.username == authUser" class="trash">
+                    <span class="fa fa-trash" aria-hidden="true" ng-click="deletePost(x.postId, x)"></span>
+                </div>
+
+                <div class="favorites"><span class="fa fa-heart" ng-click="favoritePost(x.postId, x)" aria-hidden="true"></span>{{ x.favoriteCount}}</div>
+
             </div>
-            <br>
+        </li>
+    </ul>
+</div>
+
+
+<div class="input-div" ng-hide="!authenticated">
+    <div class="area-wrapper">
+        <textarea type="text" placeholder="What's your thought?" ng-model="payload.body" class="input"></textarea>
+
+        <button ng-click="sendMessage();" class="send" ng-show="authenticated">Share Thought</button>
+        <br>
+        <div class="error-response" ng-show="errorResponses">
             <ul>
-                <li>
-                    {{x.username}}
-                </li>
-                <li ng-hide="!authenticated">
-                    <button ng-click="favoritePost(x.postId, x)">Favorite</button>
-                </li>
-                <li>
-                    {{x.favoriteCount}}
-                </li>
-                <li>
-                    {{x.postDate}}
-                </li>
-                <li ng-show="x.username == authUser">
-                    <button ng-click="deletePost(x.postId, x)">Delete thought.</button>
+                <li ng-repeat="x in errorResponses">
+                    {{x.error}}
                 </li>
             </ul>
         </div>
-    </li>
-</ul>
-
-<div class="input-div">
-    <textarea type="text" placeholder="What's your thought?" ng-model="payload.body"></textarea>
-
-    <br>
-    <button ng-click="sendMessage();">Share Thought</button>
-    <br>
-    <div class="error-response" ng-show="errorResponses">
-        <ul>
-            <li ng-repeat="x in errorResponses">
-                {{x.message}}
-            </li>
-        </ul>
     </div>
 </div>
+

@@ -29,6 +29,9 @@ thoughtBubbleApp.config(function ($routeProvider, $httpProvider) {
         controllerAs : 'controller',
         title : 'Thought Bubble | Profile'
     });
+
+    $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    $httpProvider.defaults.headers.common['Connection'] = 'close';
 });
 
 thoughtBubbleApp.run(['$rootScope', '$route', function ($rootScope, $route) {
@@ -109,6 +112,29 @@ thoughtBubbleApp.service('STOMPService', ['$q', '$timeout', '$rootScope', functi
     return service;
 }]);
 
+thoughtBubbleApp.controller('nav', function ($http, $location, $scope, $rootScope) {
+
+    $scope.goHome = function () {
+        $location.path("/");
+    };
+
+    $scope.goToLogin = function () {
+        $location.path("/login");
+    };
+
+    $scope.goToRegister = function () {
+        $location.path("/register");
+    };
+
+    $scope.goToProfile = function () {
+        $location.path("/user-profile/" + $rootScope.username);
+    };
+
+    $scope.goToLogout = function () {
+
+    };
+});
+
 thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope', 'STOMPService', '$timeout', '$route', function ($http, $location, $scope, $rootScope, STOMPService, $timeout, $route) {
     $http.get('user', {headers : {}}).then(function(response) {
 
@@ -118,8 +144,6 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
             $rootScope.authHeaders = {authorization : "Basic "
             + btoa(response.data.principal.name + ":" + response.data.principal.password)
             };
-
-            console.log($rootScope.authHeaders);
 
             $rootScope.authenticated = true;
             $rootScope.username = response.data.principal.name;
@@ -135,8 +159,9 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
 
     var socketConnection = false;
     $scope.showCount = false;
-    $scope.authUser = $rootScope.username;
 
+    $scope.authUser = $rootScope.username;
+    console.log($scope.authUser);
 
     $scope.payload = {
         postId: undefined,
@@ -145,12 +170,21 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
         username: $rootScope.username
     };
 
+    var clearPayload = function () {
+        $scope.payload.postId = undefined;
+        $scope.payload.postDate = undefined;
+        $scope.payload.body = undefined;
+    };
+
     var errorObject = {
         message: undefined
     };
 
     $scope.displayArray = [];
     $scope.errorResponses = [];
+    var clearErrors = function () {
+        $scope.errorResponses = [];
+    };
 
     if (!socketConnection) {
         $http.get('getLatestPost', halHeader).then(function(response) {
@@ -164,36 +198,65 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
 
     $scope.sendMessage = function () {
         $scope.payload.username = $rootScope.username;
-        console.log($scope.payload);
+        var error = {};
 
-        $http.post('persistThought', $scope.payload, halHeader).then(function (response) {
-            $scope.errorResponses = [];
-            $scope.payload.postId = response.data.postId;
-            $scope.payload.postDate = response.data.postDate;
-            STOMPService.send($scope.payload);
-            $scope.payload.body = undefined;
-        }, function (response) {
-            if (response.status == 400) {
-                $scope.errorResponses = response.data.fieldErrors;
+        if ($scope.payload.body == undefined) {
+            error = {
+                error: "Thought cannot be blank."
+            };
+            console.log("thought is blank");
+            clearErrors();
+            $scope.errorResponses.push(error);
+            
+            $timeout(function () {
+                clearErrors();
+            }, 3000);
+            clearPayload();
+        } else {
+            if ($scope.payload.body.length > 80) {
+                error = {
+                    error: "Thought is too long."
+                };
+                clearErrors();
+                $scope.errorResponses.push(error);
+
+                $timeout(function () {
+                    clearErrors();
+                }, 3000);
+                clearPayload();
+            } else {
+                $http.post('persistThought', $scope.payload, halHeader).then(function (response) {
+                    $scope.errorResponses = [];
+                    $scope.payload.postId = response.data.postId;
+                    $scope.payload.postDate = response.data.postDate;
+                    STOMPService.send($scope.payload);
+                    clearPayload();
+                }, function (response) {
+                    if (response.status == 400) {
+                        $scope.errorResponses = response.data.fieldErrors;
+
+                        $timeout(function () {
+                            clearErrors();
+                        }, 3000);
+                    }
+                });
+            }
+        }
+    };
+
+    $scope.favoritePost = function (postId, currentScope) {
+        if ($rootScope.authenticated) {
+            $http.get('incrementFavoriteCount?postId=' + postId).then(function (response) {
+                currentScope.favoriteCount++;
+            }, function (response) {
+                errorObject.message = response.data.error;
+                $scope.errorResponses.unshift(errorObject);
 
                 $timeout(function () {
                     $scope.errorResponses = [];
                 }, 3000);
-            }
-        });
-    };
-
-    $scope.favoritePost = function (postId, currentScope) {
-        $http.get('incrementFavoriteCount?postId=' + postId).then(function (response) {
-            currentScope.favoriteCount++;
-        }, function (response) {
-            errorObject.message = response.data.error;
-            $scope.errorResponses.unshift(errorObject);
-
-            $timeout(function () {
-                $scope.errorResponses = [];
-            }, 3000);
-        });
+            });
+        }
     };
 
     $scope.deletePost = function (postId, currentObject) {
@@ -213,27 +276,14 @@ thoughtBubbleApp.controller('home', ['$http', '$location', '$scope', '$rootScope
 
         $scope.displayArray.unshift(response);
     });
-
-    $scope.goToLogin = function () {
-        $location.path("/login");
-    };
-
-    $scope.goToRegister = function () {
-        $location.path("/register");
-    };
-
-    $scope.goToProfile = function () {
-        $location.path("/user-profile/" + $rootScope.username);
-    };
-
-    $scope.goToLogout = function () {
-
-    };
-
 }]);
 
-thoughtBubbleApp.controller('login', function($rootScope, $http, $location, $scope) {
+thoughtBubbleApp.controller('login', function($rootScope, $http, $location, $scope, $timeout) {
     $rootScope.authHeaders = {};
+    $scope.errorResponse = {
+        error: null
+    };
+    $scope.credentials = {};
 
     var authenticate = function(credentials, callback) {
 
@@ -262,21 +312,30 @@ thoughtBubbleApp.controller('login', function($rootScope, $http, $location, $sco
     };
 
     authenticate();
-    $scope.error = false;
-    $scope.credentials = {};
+
     $scope.login = function() {
-        authenticate($scope.credentials, function() {
-            if ($rootScope.authenticated) {
-                $location.path("/");
-            } else {
-                $scope.credentials = {};
-                $scope.error = true;
-            }
-        });
+        if ($scope.credentials.username == undefined || $scope.credentials.password == undefined) {
+            $scope.errorResponse.error = "Username or password is blank.";
+            $timeout(function () {
+                $scope.errorResponse.error = null;
+            }, 3000);
+        } else {
+            authenticate($scope.credentials, function () {
+                if ($rootScope.authenticated) {
+                    $location.path("/");
+                } else {
+                    $scope.credentials = {};
+                    $scope.errorResponse.error = "Username or password is incorrect.";
+                    $timeout(function () {
+                        $scope.errorResponse.error = null;
+                    }, 3000);
+                }
+            });
+        }
     };
 });
 
-thoughtBubbleApp.controller('register', function($rootScope, $http, $location, $scope) {
+thoughtBubbleApp.controller('register', function($rootScope, $http, $location, $scope, $timeout) {
     $scope.userProfile = {};
     $scope.passConfirm = {};
     $scope.errorMessageArray = [];
@@ -302,32 +361,47 @@ thoughtBubbleApp.controller('register', function($rootScope, $http, $location, $
                 if (response.status == 409) {
                     errorObject.message = response.data.error;
                     $scope.errorMessageArray.push(errorObject);
+                    $timeout(function () {
+                        $scope.errorMessageArray = [];
+                    }, 3000);
                     clearInputs();
                 } else if (response.status == 400) {
                     $scope.errorMessageArray = response.data.fieldErrors;
+                    $timeout(function () {
+                        $scope.errorMessageArray = [];
+                    }, 3000);
                     clearInputs();
                 }
             });
         } else {
             errorObject.message = "Passwords do not match.";
             $scope.errorMessageArray.push(errorObject);
+            $timeout(function () {
+                $scope.errorMessageArray = [];
+            }, 3000);
             clearInputs();
         }
     }
 });
 
 thoughtBubbleApp.controller('profile', function ($rootScope, $http, $location, $scope) {
-    $scope.profileThoughtList = [];
+    $scope.displayArray = [];
 
     if (!$rootScope.authenticated) {
         $location.path('/')
     }
 
     $http.get('getProfileData?username=' + $rootScope.username, halHeader).then(function (response) {
-        $scope.profileThoughtList = response.data.entityList;
-    }, function (response) {
-
+        $scope.displayArray = response.data.entityList;
+        }, function (response) {
     });
 
+    $scope.deletePost = function (postId, currentObject) {
+        $http.get('deleteThought?postId=' + postId).then(function (response) {
+            $scope.displayArray.splice($scope.displayArray.indexOf(currentObject),1);
+        }, function (response) {
+
+        });
+    };
 });
 
